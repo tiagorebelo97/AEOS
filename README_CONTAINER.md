@@ -4,6 +4,17 @@
 
 This repository contains a containerized version of the **AEOS (Access Control and Security Management System)** by Nedap Security Management. The original AEOS system requires Windows Server installation, but this implementation allows you to run AEOS components in containers using Docker or Podman.
 
+### Container Build Process
+
+The containerized AEOS uses the **official AEOS installer** (`aeosinstall_2023.1.8.sh`) from the [GitHub releases](https://github.com/tiagorebelo97/AEOS/releases/tag/version0). During the Docker/Podman build:
+
+1. Downloads the 1.4GB installer from GitHub releases
+2. Extracts the complete AEOS installation (WildFly, libraries, tools)
+3. Configures it for containerized deployment
+4. Creates production-ready container images
+
+This ensures that the containerized version contains the **exact same binaries** as the traditional AEOS installation, just running in containers instead of directly on Windows Server.
+
 ### What is AEOS?
 
 AEOS is an enterprise-level physical access control system that manages:
@@ -37,8 +48,9 @@ The containerized AEOS system consists of three main components:
 
 - **Docker** (version 20.10+) or **Podman** (version 3.0+)
 - **Docker Compose** or **Podman Compose**
-- Minimum 8GB RAM
-- 50GB disk space
+- Minimum 8GB RAM (12GB recommended for building)
+- 50GB disk space (10GB for build, 20GB for runtime)
+- Internet connection (to download 1.4GB AEOS installer during build)
 
 ## Quick Start
 
@@ -57,19 +69,24 @@ The containerized AEOS system consists of three main components:
    nano .env
    ```
 
-3. **Build and start the containers:**
+3. **Build the containers:**
    ```bash
    docker-compose build
+   # This downloads and installs AEOS (takes 10-20 minutes)
+   ```
+
+4. **Start the containers:**
+   ```bash
    docker-compose up -d
    ```
 
-4. **Check container status:**
+5. **Check container status:**
    ```bash
    docker-compose ps
    docker-compose logs -f
    ```
 
-5. **Access AEOS:**
+6. **Access AEOS:**
    - Web Interface: http://localhost:8080/aeos
    - HTTPS: https://localhost:8443/aeos
    - Default credentials: admin/admin (change on first login)
@@ -94,8 +111,8 @@ The containerized AEOS system consists of three main components:
    podman-compose build
    podman-compose up -d
    
-   # OR using Podman with docker-compose format
-   podman play kube --file docker-compose.yml
+   # OR using the deployment script
+   ./deploy-podman.sh
    ```
 
 4. **Check pod status:**
@@ -105,6 +122,22 @@ The containerized AEOS system consists of three main components:
    podman logs aeos-lookup
    podman logs aeos-database
    ```
+
+## Understanding the Build Process
+
+The build process downloads and installs the official AEOS software. See [BUILD.md](BUILD.md) for detailed information about:
+
+- What happens during the build
+- Build requirements and timing
+- Troubleshooting build issues
+- Advanced build options
+- Security considerations
+
+**Quick summary:**
+- First build takes 10-20 minutes (downloads 1.4GB installer)
+- Subsequent builds use cached layers (1-2 minutes)
+- Requires ~10GB disk space during build
+- Final images are ~4GB total
 
 ## Container Management
 
