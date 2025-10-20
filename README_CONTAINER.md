@@ -331,6 +331,14 @@ healthcheck:
 
 If you have an older version of the repository, pull the latest changes to get the fix.
 
+### Podman-compose network creation errors
+
+If you encounter an error like `Command 'podman network create ... --subnet 172.20.0.0/16 --subnet 172.20.0.0/16 ...' returned non-zero exit status 125`:
+
+This has been fixed. The issue was caused by duplicate subnet parameters when podman-compose tried to create the network. The `podman-compose.yml` file has been updated to remove the explicit IPAM configuration, allowing Podman to automatically assign subnets.
+
+If you have an older version of the repository, pull the latest changes to get the fix.
+
 ## Important Notes
 
 ### License Requirements
