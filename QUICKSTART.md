@@ -141,12 +141,13 @@ AEOS/
 ├── 📄 BUILD.md                     # Build process documentation
 ├── 📄 QUICKSTART.md                # This quick start guide
 ├── 📄 ANALYSIS_SUMMARY.md          # Technical analysis
+├── 🚀 start.sh                     # Universal launcher (simplest!)
+├── 🚀 deploy-podman.sh             # Automated Podman deployment
 ├── 🐳 Dockerfile                   # App server image (uses official installer)
 ├── 🐳 Dockerfile.lookup            # Lookup server image (uses official installer)
 ├── 📋 docker-compose.yml           # Docker orchestration
 ├── 📋 podman-compose.yml           # Podman orchestration
 ├── 🔧 Makefile                     # Management commands
-├── 🚀 deploy-podman.sh             # Podman deployment
 ├── 🧪 test-deployment.sh           # Testing script
 ├── 📚 aeos_technical_help_en_compressed.pdf  # Original docs
 ├── 📁 config/                      # Configuration templates

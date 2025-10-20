@@ -99,24 +99,25 @@ No manual configuration needed!
 
 ```
 AEOS/
-├── Dockerfile                          # Main AEOS application server
-├── Dockerfile.lookup                   # AEOS lookup server
-├── docker-compose.yml                  # Docker Compose configuration
-├── podman-compose.yml                  # Podman Compose configuration
-├── deploy-podman.sh                    # Podman deployment script
-├── config/                             # Configuration templates
-│   ├── aeos.properties.template        # Application properties
-│   ├── server.xml                      # Tomcat configuration
+├── start.sh                             # Universal launcher (auto-detects Docker/Podman)
+├── deploy-podman.sh                     # Automated Podman deployment script
+├── Dockerfile                           # Main AEOS application server
+├── Dockerfile.lookup                    # AEOS lookup server
+├── docker-compose.yml                   # Docker Compose configuration
+├── podman-compose.yml                   # Podman Compose configuration
+├── config/                              # Configuration templates
+│   ├── aeos.properties.template         # Application properties
+│   ├── server.xml                       # Tomcat configuration
 │   └── ...
-├── scripts/                            # Container entrypoint scripts
-│   ├── entrypoint.sh                   # Application server startup
-│   ├── healthcheck.sh                  # Health monitoring
+├── scripts/                             # Container entrypoint scripts
+│   ├── entrypoint.sh                    # Application server startup
+│   ├── healthcheck.sh                   # Health monitoring
 │   └── ...
-├── lookup-server/                      # Lookup server configuration
-├── init-scripts/                       # Database initialization
-│   └── 01-init-aeos-db.sql            # Schema creation
-├── .env.example                        # Environment variables template
-├── README_CONTAINER.md                 # Detailed container documentation
+├── lookup-server/                       # Lookup server configuration
+├── init-scripts/                        # Database initialization
+│   └── 01-init-aeos-db.sql             # Schema creation
+├── .env.example                         # Environment variables template
+├── README_CONTAINER.md                  # Detailed container documentation
 └── aeos_technical_help_en_compressed.pdf  # Original documentation
 
 ```
