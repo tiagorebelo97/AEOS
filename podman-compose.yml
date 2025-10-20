@@ -20,10 +20,11 @@ services:
     networks:
       - aeos-network
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "aeos"]
+      test: ["CMD-SHELL", "pg_isready -U aeos || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     restart: always
 
   aeos-lookup:
@@ -46,10 +47,11 @@ services:
       - aeos-database
     restart: always
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "2505"]
+      test: ["CMD-SHELL", "nc -z localhost 2505 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
   aeos-server:
     build:
@@ -83,11 +85,11 @@ services:
       - aeos-lookup
     restart: always
     healthcheck:
-      test: ["CMD", "/usr/local/bin/healthcheck.sh"]
+      test: ["CMD-SHELL", "/usr/local/bin/healthcheck.sh || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 120s
 
 volumes:
   aeos-db-data:
