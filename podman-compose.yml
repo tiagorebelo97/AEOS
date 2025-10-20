@@ -20,7 +20,7 @@ services:
     networks:
       - aeos-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U aeos"]
+      test: ["CMD", "pg_isready", "-U", "aeos"]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -312,6 +312,25 @@ Common issues:
    sudo ufw allow 8080/tcp
    ```
 
+### Podman-compose healthcheck errors
+
+If you encounter an error like `ValueError: 'CMD_SHELL' takes a single string after it`:
+
+This has been fixed in recent versions. The healthcheck format has been updated to use the `CMD` format which is more compatible with podman-compose:
+
+```yaml
+healthcheck:
+  test: ["CMD", "pg_isready", "-U", "aeos"]  # ✓ Correct format
+```
+
+Instead of the shell format:
+```yaml
+healthcheck:
+  test: ["CMD-SHELL", "pg_isready -U aeos"]  # ✗ May cause issues with podman-compose
+```
+
+If you have an older version of the repository, pull the latest changes to get the fix.
+
 ## Important Notes
 
 ### License Requirements
