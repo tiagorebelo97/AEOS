@@ -41,10 +41,14 @@ echo "Starting AEOS Lookup Server (Jini)..."
 
 # The lookup server is part of the AEOS installation
 # It uses the Jini technology for service discovery
-if [ -x "${AEOS_HOME}/bin/jini" ]; then
-    exec "${AEOS_HOME}/bin/jini"
+if [ "$1" = "start" ] || [ -z "$1" ]; then
+    if [ -x "${AEOS_HOME}/bin/jini" ]; then
+        exec "${AEOS_HOME}/bin/jini"
+    else
+        echo "ERROR: AEOS Jini/Lookup server not found at ${AEOS_HOME}/bin/jini"
+        echo "Keeping container alive for debugging..."
+        tail -f /dev/null
+    fi
 else
-    echo "ERROR: AEOS Jini/Lookup server not found at ${AEOS_HOME}/bin/jini"
-    echo "Keeping container alive for debugging..."
-    tail -f /dev/null
+    exec "$@"
 fi
