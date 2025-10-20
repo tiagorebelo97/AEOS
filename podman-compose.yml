@@ -24,7 +24,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    restart: always
 
   aeos-lookup:
     build:
@@ -44,7 +44,7 @@ services:
       - aeos-network
     depends_on:
       - aeos-database
-    restart: unless-stopped
+    restart: always
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "2505"]
       interval: 30s
@@ -81,7 +81,7 @@ services:
     depends_on:
       - aeos-database
       - aeos-lookup
-    restart: unless-stopped
+    restart: always
     healthcheck:
       test: ["CMD", "/usr/local/bin/healthcheck.sh"]
       interval: 30s
