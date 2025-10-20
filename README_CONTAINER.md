@@ -121,13 +121,28 @@ The `start.sh` script automatically:
    That's it! The script automatically:
    - Creates a secure `.env` file with random password
    - Builds all container images
-   - Starts all services
+   - Starts all services with proper sequencing
+   - Verifies containers are running
    
    **No manual configuration needed!**
 
 2. **Check pod status:**
    ```bash
+   # Using the helper script (recommended)
+   ./view-logs.sh status
+   
+   # Or using podman directly
    podman ps -a
+   ```
+
+3. **View logs:**
+   ```bash
+   # Using the helper script (recommended)
+   ./view-logs.sh all         # All logs
+   ./view-logs.sh server      # Server only
+   ./view-logs.sh follow      # Follow in real-time
+   
+   # Or using podman directly
    podman logs aeos-server
    podman logs aeos-lookup
    podman logs aeos-database
@@ -266,6 +281,31 @@ systemctl --user start container-aeos-server.service
 
 ## Troubleshooting
 
+### View Logs (Helper Script)
+
+A convenient `view-logs.sh` script is provided for easy log access:
+
+```bash
+# View all logs
+./view-logs.sh all
+
+# View logs from a specific container
+./view-logs.sh server     # AEOS application server
+./view-logs.sh lookup     # AEOS lookup server
+./view-logs.sh database   # PostgreSQL database
+
+# Follow logs in real-time
+./view-logs.sh follow
+
+# Check container status
+./view-logs.sh status
+
+# Get help
+./view-logs.sh help
+```
+
+The script automatically detects whether you're using Docker or Podman and adjusts accordingly.
+
 ### Container won't start
 
 Check logs:
@@ -324,23 +364,59 @@ If containers are built successfully but remain in "Created" state instead of "R
 
 **Symptoms:**
 - `podman ps` shows containers with status "Created" instead of "Up"
-- Database shows "starting" but never becomes fully available
-- Lookup and server containers never start
+- Database shows "Up" but "unhealthy"
+- Lookup and server containers show "Created" status and never start
 
 **Cause:**
-- Some versions of podman-compose have a bug where `restart: unless-stopped` policy causes containers to be created but not started
-- The `up -d` command may not properly start containers in these versions
+- Some versions of podman-compose have a bug where containers are created but not automatically started
+- The `up -d` command may not properly start all containers
 
 **Solution (Fixed in this version):**
-1. The `restart` policy in `podman-compose.yml` has been changed from `unless-stopped` to `always`
-2. The `deploy-podman.sh` script now explicitly runs `podman-compose start` after `up -d`
-3. Container state verification has been added to confirm all containers are running
 
-If you still experience issues, you can manually start the containers:
+The `deploy-podman.sh` script has been enhanced with:
+1. Explicit container startup commands after `up -d`
+2. Database health monitoring (waits up to 60 seconds for database to become healthy)
+3. Sequential startup of lookup and server containers
+4. Container state verification with detailed logging
+
+If you still experience issues:
+
+**Option 1: Use the updated deployment script**
 ```bash
-podman-compose start
-podman ps  # Verify all containers show "Up" status
+./deploy-podman.sh
 ```
+
+**Option 2: Manually start containers**
+```bash
+# Start database first
+podman start aeos-database
+
+# Wait for database to be healthy (check with)
+podman inspect --format='{{.State.Health.Status}}' aeos-database
+
+# Start lookup server
+podman start aeos-lookup
+
+# Wait a few seconds
+sleep 5
+
+# Start application server
+podman start aeos-server
+
+# Verify all are running
+podman ps -a --filter "name=aeos-"
+```
+
+**Option 3: View logs for debugging**
+```bash
+# Use the log viewer script
+./view-logs.sh status
+./view-logs.sh database
+./view-logs.sh lookup
+./view-logs.sh server
+```
+
+If containers fail to start, check the logs using `./view-logs.sh [container-name]` to see error messages.
 
 ```yaml
 healthcheck:
