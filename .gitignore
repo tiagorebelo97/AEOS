@@ -1,0 +1,19 @@
+# Environment variables
+.env
+
+# Container data
+aeos-db-data/
+
+# Build artifacts
+*.log
+*.tmp
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
