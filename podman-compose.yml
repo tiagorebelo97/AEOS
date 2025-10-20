@@ -80,8 +80,11 @@ services:
 
 volumes:
   aeos-db-data:
+    driver: local
   aeos-data:
+    driver: local
   aeos-logs:
+    driver: local
 
 networks:
   aeos-network:
