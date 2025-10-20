@@ -79,6 +79,10 @@ deploy_with_compose() {
     echo "Starting containers with podman-compose..."
     podman-compose up -d
     
+    # Explicitly start containers (workaround for podman-compose bug where containers may be created but not started)
+    echo "Ensuring containers are started..."
+    podman-compose start
+    
     echo ""
     echo "Checking container status..."
     podman-compose ps
