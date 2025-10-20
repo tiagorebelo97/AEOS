@@ -43,6 +43,22 @@ The build process:
 - 50GB disk space (build requires ~10GB, running requires ~20GB)
 - Internet connection (to download the 1.4GB AEOS installer)
 
+### Simplest Method (Auto-detects Docker/Podman)
+
+```bash
+git clone https://github.com/tiagorebelo97/AEOS.git
+cd AEOS
+./start.sh  # That's it!
+```
+
+The `start.sh` script automatically:
+- Detects whether you have Docker or Podman
+- Creates secure random passwords
+- Builds all container images
+- Starts all services
+
+**No manual configuration needed!**
+
 ### Using Docker
 
 ```bash
@@ -61,10 +77,15 @@ Access AEOS at: http://localhost:8080/aeos
 ```bash
 git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
-cp .env.example .env
-# Edit .env to set secure passwords
-./deploy-podman.sh  # Builds and starts the containers
+./deploy-podman.sh  # Automatically sets up and starts everything!
 ```
+
+That's it! The script automatically:
+- Creates a secure `.env` file with random password
+- Builds all container images
+- Starts all services
+
+No manual configuration needed!
 
 ## Documentation
 
@@ -78,24 +99,25 @@ cp .env.example .env
 
 ```
 AEOS/
-├── Dockerfile                          # Main AEOS application server
-├── Dockerfile.lookup                   # AEOS lookup server
-├── docker-compose.yml                  # Docker Compose configuration
-├── podman-compose.yml                  # Podman Compose configuration
-├── deploy-podman.sh                    # Podman deployment script
-├── config/                             # Configuration templates
-│   ├── aeos.properties.template        # Application properties
-│   ├── server.xml                      # Tomcat configuration
+├── start.sh                             # Universal launcher (auto-detects Docker/Podman)
+├── deploy-podman.sh                     # Automated Podman deployment script
+├── Dockerfile                           # Main AEOS application server
+├── Dockerfile.lookup                    # AEOS lookup server
+├── docker-compose.yml                   # Docker Compose configuration
+├── podman-compose.yml                   # Podman Compose configuration
+├── config/                              # Configuration templates
+│   ├── aeos.properties.template         # Application properties
+│   ├── server.xml                       # Tomcat configuration
 │   └── ...
-├── scripts/                            # Container entrypoint scripts
-│   ├── entrypoint.sh                   # Application server startup
-│   ├── healthcheck.sh                  # Health monitoring
+├── scripts/                             # Container entrypoint scripts
+│   ├── entrypoint.sh                    # Application server startup
+│   ├── healthcheck.sh                   # Health monitoring
 │   └── ...
-├── lookup-server/                      # Lookup server configuration
-├── init-scripts/                       # Database initialization
-│   └── 01-init-aeos-db.sql            # Schema creation
-├── .env.example                        # Environment variables template
-├── README_CONTAINER.md                 # Detailed container documentation
+├── lookup-server/                       # Lookup server configuration
+├── init-scripts/                        # Database initialization
+│   └── 01-init-aeos-db.sql             # Schema creation
+├── .env.example                         # Environment variables template
+├── README_CONTAINER.md                  # Detailed container documentation
 └── aeos_technical_help_en_compressed.pdf  # Original documentation
 
 ```
