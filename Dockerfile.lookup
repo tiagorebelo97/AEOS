@@ -1,0 +1,51 @@
+# AEOS Lookup Server Dockerfile
+FROM eclipse-temurin:11-jdk-jammy
+
+LABEL maintainer="AEOS Container"
+LABEL description="AEOS Lookup Server for network communication"
+LABEL version="2023.1.8"
+
+ENV AEOS_HOME=/opt/aeos \
+    AEOS_VERSION=2023.1.8 \
+    AEOS_LOOKUP_PORT=2505 \
+    JAVA_HOME=/opt/java/openjdk \
+    JAVA_OPTS="-Xms512m -Xmx1024m"
+
+# Install required packages
+RUN apt-get update && apt-get install -y \
+    wget \
+    netcat-openbsd \
+    curl \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download and install AEOS
+RUN echo "Downloading AEOS installer from GitHub releases..." \
+    && wget -q --show-progress \
+        "https://github.com/tiagorebelo97/AEOS/releases/download/version0/aeosinstall_${AEOS_VERSION}.sh" \
+        -O /tmp/aeosinstall.sh \
+    && chmod +x /tmp/aeosinstall.sh \
+    && echo "Installing AEOS to ${AEOS_HOME}..." \
+    && /tmp/aeosinstall.sh -s -d ${AEOS_HOME} \
+    && rm -f /tmp/aeosinstall.sh \
+    && echo "AEOS installation complete"
+
+# Copy scripts
+COPY scripts/lookup-entrypoint.sh /usr/local/bin/
+COPY scripts/lookup-healthcheck.sh /usr/local/bin/
+
+# Make scripts executable
+RUN chmod +x /usr/local/bin/lookup-entrypoint.sh \
+    && chmod +x /usr/local/bin/lookup-healthcheck.sh
+
+# Expose lookup port
+EXPOSE 2505
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD /usr/local/bin/lookup-healthcheck.sh
+
+WORKDIR ${AEOS_HOME}
+
+ENTRYPOINT ["/usr/local/bin/lookup-entrypoint.sh"]
+CMD ["start"]
