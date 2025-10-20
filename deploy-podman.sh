@@ -79,9 +79,29 @@ deploy_with_compose() {
     echo "Starting containers with podman-compose..."
     podman-compose up -d
     
+    # Explicitly start containers (workaround for podman-compose bug where containers may be created but not started)
+    echo "Ensuring containers are started..."
+    podman-compose start
+    
+    # Wait a moment for containers to initialize
+    echo "Waiting for containers to initialize..."
+    sleep 5
+    
     echo ""
     echo "Checking container status..."
     podman-compose ps
+    
+    # Verify containers are running
+    echo ""
+    echo "Verifying container states..."
+    for container in aeos-database aeos-lookup aeos-server; do
+        state=$(podman inspect --format='{{.State.Status}}' ${container} 2>/dev/null || echo "not found")
+        if [ "$state" = "running" ]; then
+            echo "  ✓ ${container} is running"
+        else
+            echo "  ✗ ${container} is ${state}"
+        fi
+    done
 }
 
 # Function to deploy with native podman

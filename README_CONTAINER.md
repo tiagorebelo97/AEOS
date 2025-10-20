@@ -318,6 +318,30 @@ If you encounter an error like `ValueError: 'CMD_SHELL' takes a single string af
 
 This has been fixed in recent versions. The healthcheck format has been updated to use the `CMD` format which is more compatible with podman-compose:
 
+### Containers stuck in "Created" state with Podman
+
+If containers are built successfully but remain in "Created" state instead of "Running":
+
+**Symptoms:**
+- `podman ps` shows containers with status "Created" instead of "Up"
+- Database shows "starting" but never becomes fully available
+- Lookup and server containers never start
+
+**Cause:**
+- Some versions of podman-compose have a bug where `restart: unless-stopped` policy causes containers to be created but not started
+- The `up -d` command may not properly start containers in these versions
+
+**Solution (Fixed in this version):**
+1. The `restart` policy in `podman-compose.yml` has been changed from `unless-stopped` to `always`
+2. The `deploy-podman.sh` script now explicitly runs `podman-compose start` after `up -d`
+3. Container state verification has been added to confirm all containers are running
+
+If you still experience issues, you can manually start the containers:
+```bash
+podman-compose start
+podman ps  # Verify all containers show "Up" status
+```
+
 ```yaml
 healthcheck:
   test: ["CMD", "pg_isready", "-U", "aeos"]  # ✓ Correct format
