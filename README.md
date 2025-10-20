@@ -19,7 +19,49 @@ The AEOS system traditionally required Windows Server installation. This reposit
 
 ## Quick Start
 
-### Using Docker
+### Prerequisites
+
+Before you begin, you need:
+1. **Docker** (20.10+) or **Podman** (3.0+)
+2. **AEOS Software Binaries** from Nedap Security Management
+   - AEOS application server WAR file
+   - AEOS lookup server JAR file
+   - Valid AEOS license
+
+### Step 1: Obtain AEOS Binaries
+
+⚠️ **Important**: AEOS is proprietary software. You must obtain the binaries from Nedap:
+- Contact: https://www.nedapsecurity.com/
+- Request: AEOS installation package and license
+
+### Step 2: Place Binaries
+
+Place your AEOS binaries in the correct directories:
+
+```bash
+# Copy application server WAR file
+cp /path/to/aeos.war binaries/app-server/
+
+# Copy lookup server JAR file  
+cp /path/to/aeos-lookup.jar binaries/lookup-server/
+```
+
+See [binaries/README.md](binaries/README.md) for detailed instructions.
+
+### Step 3: Deploy with Docker
+
+```bash
+git clone https://github.com/tiagorebelo97/AEOS.git
+cd AEOS
+cp .env.example .env
+# Edit .env to set secure passwords
+docker-compose build
+docker-compose up -d
+```
+
+Access AEOS at: http://localhost:8080/aeos
+
+### Step 4: Deploy with Podman
 
 ```bash
 git clone https://github.com/tiagorebelo97/AEOS.git
@@ -31,11 +73,12 @@ docker-compose up -d
 
 Access AEOS at: http://localhost:8080/aeos
 
-### Using Podman
+### Step 4: Deploy with Podman
 
 ```bash
 git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
+# Place binaries as shown above
 cp .env.example .env
 # Edit .env to set secure passwords
 ./deploy-podman.sh
@@ -55,6 +98,10 @@ AEOS/
 ├── docker-compose.yml                  # Docker Compose configuration
 ├── podman-compose.yml                  # Podman Compose configuration
 ├── deploy-podman.sh                    # Podman deployment script
+├── binaries/                           # AEOS binaries directory (user-provided)
+│   ├── README.md                       # Binary placement instructions
+│   ├── app-server/                     # Place WAR files here
+│   └── lookup-server/                  # Place JAR files here
 ├── config/                             # Configuration templates
 │   ├── aeos.properties.template        # Application properties
 │   ├── server.xml                      # Tomcat configuration

@@ -31,21 +31,33 @@ echo "  Database Host: ${AEOS_DB_HOST}"
 echo "  Database Port: ${AEOS_DB_PORT}"
 echo "========================================"
 
-# Start the lookup server (this is a placeholder - actual implementation would differ)
+# Start the lookup server
 echo "Starting AEOS Lookup Server on port ${AEOS_LOOKUP_PORT}..."
 
-# Create a simple Java server listener for demonstration
-# In a real implementation, this would launch the actual AEOS lookup server
-java ${JAVA_OPTS} \
-    -Dlookup.port=${AEOS_LOOKUP_PORT} \
-    -Dlookup.home=${AEOS_LOOKUP_HOME} \
-    -Ddb.host=${AEOS_DB_HOST} \
-    -Ddb.port=${AEOS_DB_PORT} \
-    -Ddb.name=${AEOS_DB_NAME} \
-    -cp "${AEOS_LOOKUP_HOME}/lib/*" \
-    com.nedap.aeos.lookup.LookupServer || {
-        echo "Note: Actual AEOS lookup server binary not found"
-        echo "Creating mock listener on port ${AEOS_LOOKUP_PORT}..."
-        # Keep container running with a simple port listener
-        nc -l -p ${AEOS_LOOKUP_PORT} -k
-    }
+# Find the main JAR file
+LOOKUP_JAR=$(find ${AEOS_LOOKUP_HOME}/bin -name "*.jar" -type f | head -n 1)
+
+if [ -n "$LOOKUP_JAR" ] && [ -f "$LOOKUP_JAR" ]; then
+    echo "Found lookup server JAR: $LOOKUP_JAR"
+    
+    # Build classpath with all JARs in bin directory
+    CLASSPATH="${AEOS_LOOKUP_HOME}/bin/*"
+    
+    # Start the actual AEOS lookup server
+    exec java ${JAVA_OPTS} \
+        -Dlookup.port=${AEOS_LOOKUP_PORT} \
+        -Dlookup.home=${AEOS_LOOKUP_HOME} \
+        -Dlookup.config=${AEOS_LOOKUP_HOME}/config/lookup.properties \
+        -Ddb.host=${AEOS_DB_HOST} \
+        -Ddb.port=${AEOS_DB_PORT} \
+        -Ddb.name=${AEOS_DB_NAME} \
+        -cp "${CLASSPATH}" \
+        -jar "$LOOKUP_JAR"
+else
+    echo "ERROR: No AEOS lookup server JAR file found in ${AEOS_LOOKUP_HOME}/bin/"
+    echo "Please place the AEOS lookup server JAR file in binaries/lookup-server/ before building"
+    echo ""
+    echo "Creating mock listener on port ${AEOS_LOOKUP_PORT} for testing..."
+    # Keep container running with a simple port listener for testing/development
+    nc -l -p ${AEOS_LOOKUP_PORT} -k
+fi

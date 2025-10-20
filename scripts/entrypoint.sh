@@ -49,5 +49,17 @@ echo "  HTTPS Port: ${AEOS_HTTPS_PORT:-8443}"
 echo "  Server Port: ${AEOS_SERVER_PORT:-2506}"
 echo "========================================"
 
+# Check if AEOS WAR files are deployed
+echo "Checking for AEOS application binaries..."
+WAR_COUNT=$(find ${CATALINA_HOME}/webapps -name "*.war" -type f | wc -l)
+if [ "$WAR_COUNT" -gt 0 ]; then
+    echo "Found $WAR_COUNT WAR file(s) in webapps directory"
+    find ${CATALINA_HOME}/webapps -name "*.war" -type f -exec basename {} \;
+else
+    echo "WARNING: No WAR files found in ${CATALINA_HOME}/webapps/"
+    echo "Please place AEOS WAR files in binaries/app-server/ before building"
+    echo "The application server will start but AEOS may not be available"
+fi
+
 echo "Starting AEOS Application Server..."
 exec "$@"

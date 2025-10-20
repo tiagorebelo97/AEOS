@@ -33,6 +33,16 @@ temp/
 *.license
 license/
 
+# AEOS binary files (proprietary - must be obtained from Nedap)
+binaries/**/*.war
+binaries/**/*.jar
+binaries/**/*.zip
+binaries/**/*.exe
+binaries/**/*.dll
+binaries/**/*.so
+# Keep directory structure
+!binaries/**/.gitkeep
+
 # Backup files
 *.bak
 *.backup
