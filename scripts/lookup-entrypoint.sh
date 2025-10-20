@@ -12,7 +12,7 @@ echo "========================================"
 echo "Waiting for database to be ready..."
 DB_HOST="${AEOS_DB_HOST:-aeos-database}"
 DB_PORT="${AEOS_DB_PORT:-5432}"
-while ! nc -z ${DB_HOST} ${DB_PORT}; do
+while ! nc -z "${DB_HOST}" "${DB_PORT}"; do
     echo "Database ${DB_HOST}:${DB_PORT} is unavailable - sleeping"
     sleep 2
 done

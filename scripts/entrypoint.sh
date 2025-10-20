@@ -12,7 +12,7 @@ echo "========================================"
 echo "Waiting for database to be ready..."
 DB_HOST="${AEOS_DB_HOST:-aeos-database}"
 DB_PORT="${AEOS_DB_PORT:-5432}"
-while ! nc -z ${DB_HOST} ${DB_PORT}; do
+while ! nc -z "${DB_HOST}" "${DB_PORT}"; do
     echo "Database ${DB_HOST}:${DB_PORT} is unavailable - sleeping"
     sleep 2
 done
@@ -22,7 +22,7 @@ echo "Database is up - continuing"
 echo "Waiting for lookup server to be ready..."
 LOOKUP_HOST="${AEOS_LOOKUP_HOST:-aeos-lookup}"
 LOOKUP_PORT="${AEOS_LOOKUP_PORT:-2505}"
-while ! nc -z ${LOOKUP_HOST} ${LOOKUP_PORT}; do
+while ! nc -z "${LOOKUP_HOST}" "${LOOKUP_PORT}"; do
     echo "Lookup server ${LOOKUP_HOST}:${LOOKUP_PORT} is unavailable - sleeping"
     sleep 2
 done
