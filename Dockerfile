@@ -31,6 +31,10 @@ RUN mkdir -p ${AEOS_HOME} \
     && mkdir -p ${AEOS_DATA}/data \
     && mkdir -p ${CATALINA_HOME}/webapps
 
+# Copy AEOS application binaries
+# Place your AEOS WAR files in binaries/app-server/ before building
+COPY binaries/app-server/*.war ${CATALINA_HOME}/webapps/
+
 # Copy AEOS configuration template
 COPY config/aeos.properties.template ${AEOS_DATA}/config/
 COPY config/server.xml ${CATALINA_HOME}/conf/server.xml

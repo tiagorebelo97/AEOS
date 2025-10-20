@@ -35,10 +35,30 @@ The containerized AEOS system consists of three main components:
 
 ## Prerequisites
 
+Before deploying AEOS, ensure you have:
+
 - **Docker** (version 20.10+) or **Podman** (version 3.0+)
 - **Docker Compose** or **Podman Compose**
 - Minimum 8GB RAM
 - 50GB disk space
+- **AEOS Software Binaries** from Nedap Security Management
+  - AEOS application server WAR file (e.g., `aeos.war`)
+  - AEOS lookup server JAR file (e.g., `aeos-lookup.jar`)
+  - Valid AEOS license file or key
+
+### Obtaining AEOS Binaries
+
+⚠️ **Critical Step**: AEOS is proprietary software that requires licensing from Nedap.
+
+1. **Contact Nedap Security Management**: https://www.nedapsecurity.com/
+2. **Request AEOS Software**: Ask for the installation package for your version
+3. **Extract Binaries**: From the installation package, extract:
+   - Application server WAR file (usually named `aeos.war` or similar)
+   - Lookup server JAR file (usually named `aeos-lookup.jar` or similar)
+   - Any required libraries or dependencies
+4. **Obtain License**: Get your license file or license key
+
+For detailed instructions on binary placement, see [binaries/README.md](binaries/README.md).
 
 ## Quick Start
 
@@ -50,26 +70,45 @@ The containerized AEOS system consists of three main components:
    cd AEOS
    ```
 
-2. **Create environment file:**
+2. **Place AEOS binaries:**
+   ```bash
+   # Copy your AEOS binaries to the correct locations
+   cp /path/to/aeos.war binaries/app-server/
+   cp /path/to/aeos-lookup.jar binaries/lookup-server/
+   
+   # Verify binaries are in place
+   ls -lh binaries/app-server/
+   ls -lh binaries/lookup-server/
+   ```
+   
+   See [binaries/README.md](binaries/README.md) for detailed instructions.
+
+3. **Create environment file:**
    ```bash
    cp .env.example .env
    # Edit .env and set secure passwords
    nano .env
    ```
 
-3. **Build and start the containers:**
+4. **Build the container images:**
    ```bash
    docker-compose build
+   ```
+   
+   This step copies your binaries into the container images.
+
+5. **Start the containers:**
+   ```bash
    docker-compose up -d
    ```
 
-4. **Check container status:**
+6. **Check container status:**
    ```bash
    docker-compose ps
    docker-compose logs -f
    ```
 
-5. **Access AEOS:**
+7. **Access AEOS:**
    - Web Interface: http://localhost:8080/aeos
    - HTTPS: https://localhost:8443/aeos
    - Default credentials: admin/admin (change on first login)
@@ -82,23 +121,30 @@ The containerized AEOS system consists of three main components:
    cd AEOS
    ```
 
-2. **Create environment file:**
+2. **Place AEOS binaries:**
+   ```bash
+   # Copy your AEOS binaries to the correct locations
+   cp /path/to/aeos.war binaries/app-server/
+   cp /path/to/aeos-lookup.jar binaries/lookup-server/
+   ```
+
+3. **Create environment file:**
    ```bash
    cp .env.example .env
    nano .env
    ```
 
-3. **Build and start with Podman:**
+4. **Build and start with Podman:**
    ```bash
    # Using podman-compose
    podman-compose build
    podman-compose up -d
    
-   # OR using Podman with docker-compose format
-   podman play kube --file docker-compose.yml
+   # OR using the deployment script
+   ./deploy-podman.sh
    ```
 
-4. **Check pod status:**
+5. **Check pod status:**
    ```bash
    podman ps -a
    podman logs aeos-server

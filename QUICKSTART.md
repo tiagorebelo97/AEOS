@@ -45,12 +45,33 @@
 
 ## Installation Methods
 
+### Step 0: Obtain and Place AEOS Binaries (Required First!)
+
+Before any installation method, you **must** obtain AEOS binaries from Nedap:
+
+```bash
+# 1. Contact Nedap Security Management to obtain AEOS software
+# 2. Extract the binaries from the installation package
+# 3. Place them in the correct directories:
+
+cp /path/to/your/aeos.war binaries/app-server/
+cp /path/to/your/aeos-lookup.jar binaries/lookup-server/
+
+# 4. Verify binaries are in place:
+ls -lh binaries/app-server/
+ls -lh binaries/lookup-server/
+```
+
+📖 **See [binaries/README.md](binaries/README.md) for detailed binary placement instructions**
+
 ### Method 1: Docker Compose (Easiest)
 ```bash
 git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
+# Place binaries (see Step 0 above)
 cp .env.example .env
 # Edit .env to set passwords
+docker-compose build
 docker-compose up -d
 ```
 
@@ -58,6 +79,7 @@ docker-compose up -d
 ```bash
 git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
+# Place binaries (see Step 0 above)
 cp .env.example .env
 # Edit .env to set passwords
 ./deploy-podman.sh
@@ -67,8 +89,10 @@ cp .env.example .env
 ```bash
 git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
+# Place binaries (see Step 0 above)
 cp .env.example .env
 # Edit .env to set passwords
+podman-compose build
 podman-compose up -d
 ```
 
@@ -76,10 +100,13 @@ podman-compose up -d
 ```bash
 git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
+# Place binaries (see Step 0 above)
 make init-env  # Creates .env from template
 # Edit .env to set passwords
+make build     # Build images
 make up        # For Docker
 # OR
+make build-podman
 make up-podman # For Podman
 ```
 
@@ -134,6 +161,10 @@ AEOS/
 ├── 🚀 deploy-podman.sh             # Podman deployment
 ├── 🧪 test-deployment.sh           # Testing script
 ├── 📚 aeos_technical_help_en_compressed.pdf  # Original docs
+├── 📁 binaries/                    # ⭐ PLACE YOUR AEOS BINARIES HERE
+│   ├── README.md                   # Binary placement guide
+│   ├── app-server/                 # Put WAR files here
+│   └── lookup-server/              # Put JAR files here
 ├── 📁 config/                      # Configuration templates
 ├── 📁 scripts/                     # Startup scripts
 ├── 📁 init-scripts/                # Database init
@@ -177,12 +208,16 @@ podman exec aeos-database pg_isready -U aeos
 
 1. ✅ Install Docker or Podman
 2. ✅ Clone the repository
-3. ✅ Create .env file with secure passwords
-4. ✅ Run deployment command
-5. ✅ Access web interface
-6. 📖 Read README_CONTAINER.md for detailed info
-7. 📖 Read ANALYSIS_SUMMARY.md for technical details
-8. 📄 Review aeos_technical_help_en_compressed.pdf for AEOS features
+3. ⭐ **Obtain AEOS binaries from Nedap** (CRITICAL!)
+4. ⭐ **Place binaries in binaries/app-server/ and binaries/lookup-server/**
+5. ✅ Create .env file with secure passwords
+6. ✅ Build container images (this copies binaries into containers)
+7. ✅ Run deployment command
+8. ✅ Access web interface
+9. 📖 Read README_CONTAINER.md for detailed info
+10. 📖 Read binaries/README.md for binary placement help
+11. 📖 Read ANALYSIS_SUMMARY.md for technical details
+12. 📄 Review aeos_technical_help_en_compressed.pdf for AEOS features
 
 ## Support
 
