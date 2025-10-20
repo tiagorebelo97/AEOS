@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  aeos:
+    # Build from the Containerfile in the current directory
+    build:
+      context: .
+      dockerfile: Containerfile
+    
+    # Container name
+    container_name: aeos
+    
+    # Image name
+    image: aeos:latest
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Environment variables
+    # environment:
+    #   - ENV_VAR_NAME=value
+    
+    # Port mappings (uncomment and modify as needed)
+    # ports:
+    #   - "8080:8080"
+    
+    # Volume mounts (uncomment and modify as needed)
+    # volumes:
+    #   - ./data:/app/data
+    #   - ./config:/app/config
+    
+    # Network mode (uncomment if needed)
+    # network_mode: "host"
+    
+    # Security options for rootless Podman
+    security_opt:
+      - label=disable
+    
+    # User mapping (useful for rootless Podman)
+    # user: "1000:1000"
+    
+    # Command override (uncomment to override CMD in Containerfile)
+    # command: /bin/bash
+
+# Define networks if needed
+# networks:
+#   aeos-network:
+#     driver: bridge
+
+# Define volumes if needed
+# volumes:
+#   aeos-data:
