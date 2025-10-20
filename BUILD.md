@@ -325,14 +325,21 @@ trivy image aeos-server:latest
 
 ## Next Steps
 
-After building the containers:
+After building the containers, see **[POST_BUILD.md](POST_BUILD.md)** for:
+- Understanding your build output and any warnings
+- Clear next steps to start and access AEOS
+- Troubleshooting common issues
+- Verifying your deployment
 
-1. **Configure**: Edit `.env` file with your settings
-2. **Deploy**: Run `docker-compose up -d`
-3. **Verify**: Check logs with `docker-compose logs -f`
-4. **Access**: Open http://localhost:8080/aeos
+Quick summary:
 
-See [README_CONTAINER.md](README_CONTAINER.md) for deployment documentation.
+1. **Verify**: Check that images were created: `docker images | grep aeos`
+2. **Configure**: Edit `.env` file with your settings (if not done)
+3. **Deploy**: Run `docker-compose up -d` or `podman-compose up -d`
+4. **Monitor**: Check logs with `docker-compose logs -f`
+5. **Access**: Open http://localhost:8080/aeos
+
+See [README_CONTAINER.md](README_CONTAINER.md) for detailed deployment documentation.
 
 ## Support
 
