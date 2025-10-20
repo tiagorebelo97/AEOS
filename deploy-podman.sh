@@ -200,5 +200,6 @@ else
     echo "  podman stop aeos-server aeos-lookup aeos-database"
 fi
 echo ""
+echo "For troubleshooting and next steps, see POST_BUILD.md"
 echo "For more information, see README_CONTAINER.md"
 echo "=========================================="
