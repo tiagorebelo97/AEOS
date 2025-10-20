@@ -16,8 +16,32 @@ The AEOS system traditionally required Windows Server installation. This reposit
 ✅ **Easy deployment** - Simple setup with docker-compose or podman-compose  
 ✅ **Cloud-ready** - Deploy on any container platform  
 ✅ **Scalable** - Container orchestration support  
+✅ **Official AEOS binaries** - Uses the official aeosinstall_2023.1.8.sh from GitHub releases
+
+### How It Works
+
+The containerized AEOS system automatically downloads and installs the official AEOS 2023.1.8 installer during the Docker/Podman build process. The installer (`aeosinstall_2023.1.8.sh`) is a self-extracting archive containing:
+
+- **AEserver** - WildFly/JBoss application server with AEOS web application
+- **AEmon** - AEOS monitoring and management tools
+- **Jini/Lookup Server** - Service discovery and communication coordinator
+- **Libraries and utilities** - All required Java libraries and tools
+
+The build process:
+1. Downloads `aeosinstall_2023.1.8.sh` from GitHub releases (1.4GB)
+2. Extracts the AEOS installation non-interactively
+3. Configures the system for containerized deployment
+4. Sets up proper database connections and networking  
 
 ## Quick Start
+
+### Prerequisites
+
+- Docker 20.10+ or Podman 3.0+
+- Docker Compose or Podman Compose
+- 8GB RAM minimum (12GB recommended for building)
+- 50GB disk space (build requires ~10GB, running requires ~20GB)
+- Internet connection (to download the 1.4GB AEOS installer)
 
 ### Using Docker
 
@@ -26,6 +50,7 @@ git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
 cp .env.example .env
 # Edit .env to set secure passwords
+docker-compose build  # Downloads and installs AEOS (this takes time!)
 docker-compose up -d
 ```
 
@@ -38,7 +63,7 @@ git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
 cp .env.example .env
 # Edit .env to set secure passwords
-./deploy-podman.sh
+./deploy-podman.sh  # Builds and starts the containers
 ```
 
 ## Documentation
