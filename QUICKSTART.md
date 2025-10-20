@@ -48,7 +48,23 @@
 
 **⚠️ Note**: First build takes 10-20 minutes to download and install the 1.4GB AEOS installer. Subsequent builds are much faster (~1-2 minutes).
 
-### Method 1: Docker Compose (Easiest)
+### Method 1: Universal Start Script (Simplest!)
+```bash
+git clone https://github.com/tiagorebelo97/AEOS.git
+cd AEOS
+./start.sh  # Auto-detects Docker or Podman and does everything!
+```
+**✨ The easiest way!** Auto-detects your container runtime, creates secure passwords, builds images, and starts all services.
+
+### Method 2: Podman Deploy Script
+```bash
+git clone https://github.com/tiagorebelo97/AEOS.git
+cd AEOS
+./deploy-podman.sh  # Does everything automatically!
+```
+**✨ Fully automatic!** Creates secure passwords, builds images, and starts all services.
+
+### Method 3: Docker Compose
 ```bash
 git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
@@ -58,16 +74,7 @@ docker-compose build  # Downloads AEOS installer (takes time!)
 docker-compose up -d
 ```
 
-### Method 2: Podman Deploy Script
-```bash
-git clone https://github.com/tiagorebelo97/AEOS.git
-cd AEOS
-cp .env.example .env
-# Edit .env to set passwords
-./deploy-podman.sh  # Builds and deploys (takes time!)
-```
-
-### Method 3: Podman Compose
+### Method 4: Podman Compose
 ```bash
 git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
@@ -77,7 +84,7 @@ podman-compose build  # Downloads AEOS installer (takes time!)
 podman-compose up -d
 ```
 
-### Method 4: Makefile
+### Method 5: Makefile
 ```bash
 git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS

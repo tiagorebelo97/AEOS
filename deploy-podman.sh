@@ -1,6 +1,7 @@
 #!/bin/bash
 # Podman deployment script for AEOS
-# This script helps deploy AEOS using Podman instead of Docker
+# This script fully automates AEOS deployment using Podman
+# Usage: ./deploy-podman.sh
 
 set -e
 
@@ -29,13 +30,43 @@ else
     USE_COMPOSE=true
 fi
 
-# Check for .env file
+# Function to generate a secure random password
+generate_password() {
+    # Try different methods to generate a secure password
+    if command -v openssl &> /dev/null; then
+        openssl rand -base64 32 | tr -d "=+/" | cut -c1-25
+    elif command -v pwgen &> /dev/null; then
+        pwgen -s 25 1
+    else
+        # Fallback to /dev/urandom
+        cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 25 | head -n 1
+    fi
+}
+
+# Check for .env file and create if missing
 if [ ! -f .env ]; then
-    echo "Creating .env file from template..."
-    cp .env.example .env
-    echo "⚠ Please edit .env and set secure passwords!"
-    echo "Press Enter to continue after editing .env, or Ctrl+C to exit..."
-    read
+    echo "Creating .env file with secure random password..."
+    DB_PASSWORD=$(generate_password)
+    cat > .env << EOF
+# Environment Variables for AEOS Container Setup
+# Auto-generated on $(date)
+
+# Database Configuration
+AEOS_DB_PASSWORD=${DB_PASSWORD}
+
+# Timezone Configuration
+TZ=UTC
+
+# Optional: Custom ports (uncomment to override defaults)
+# AEOS_WEB_PORT=8080
+# AEOS_HTTPS_PORT=8443
+# AEOS_LOOKUP_PORT=2505
+# AEOS_SERVER_PORT=2506
+# AEOS_DB_PORT=5432
+EOF
+    echo "✓ Created .env file with secure password"
+else
+    echo "✓ Using existing .env file"
 fi
 
 # Function to deploy with podman-compose

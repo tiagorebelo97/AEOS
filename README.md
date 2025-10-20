@@ -43,6 +43,22 @@ The build process:
 - 50GB disk space (build requires ~10GB, running requires ~20GB)
 - Internet connection (to download the 1.4GB AEOS installer)
 
+### Simplest Method (Auto-detects Docker/Podman)
+
+```bash
+git clone https://github.com/tiagorebelo97/AEOS.git
+cd AEOS
+./start.sh  # That's it!
+```
+
+The `start.sh` script automatically:
+- Detects whether you have Docker or Podman
+- Creates secure random passwords
+- Builds all container images
+- Starts all services
+
+**No manual configuration needed!**
+
 ### Using Docker
 
 ```bash
@@ -61,10 +77,15 @@ Access AEOS at: http://localhost:8080/aeos
 ```bash
 git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
-cp .env.example .env
-# Edit .env to set secure passwords
-./deploy-podman.sh  # Builds and starts the containers
+./deploy-podman.sh  # Automatically sets up and starts everything!
 ```
+
+That's it! The script automatically:
+- Creates a secure `.env` file with random password
+- Builds all container images
+- Starts all services
+
+No manual configuration needed!
 
 ## Documentation
 
