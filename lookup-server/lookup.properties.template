@@ -1,0 +1,16 @@
+# AEOS Lookup Server Configuration Template
+
+# Lookup Server Settings
+lookup.port=${AEOS_LOOKUP_PORT}
+lookup.host=0.0.0.0
+
+# Database Connection
+db.host=${AEOS_DB_HOST}
+db.port=${AEOS_DB_PORT}
+db.name=${AEOS_DB_NAME}
+db.user=${AEOS_DB_USER}
+db.password=${AEOS_DB_PASSWORD}
+
+# Logging
+log.level=INFO
+log.path=${AEOS_LOOKUP_HOME}/logs
