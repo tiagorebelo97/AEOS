@@ -68,7 +68,10 @@ cp .env.example .env
 
 ## Documentation
 
+- **[Quick Start Guide](QUICKSTART.md)** - Fast track to get AEOS running
+- **[VM Deployment Guide](VM_DEPLOYMENT.md)** - Deploy on a Virtual Machine
 - **[Container Deployment Guide](README_CONTAINER.md)** - Complete containerization documentation
+- **[Build Process Guide](BUILD.md)** - Understanding the build process
 - **[Technical Help PDF](aeos_technical_help_en_compressed.pdf)** - Original AEOS documentation (1242 pages)
 
 ## Repository Structure

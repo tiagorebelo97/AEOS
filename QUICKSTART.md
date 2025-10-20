@@ -26,7 +26,7 @@
 │         Docker/Podman Host          │
 │  ┌──────────────────────────────┐   │
 │  │ 📦 aeos-server container     │   │
-│  │    (Tomcat + Java)           │   │
+│  │    (WildFly + Real AEOS)     │   │
 │  │    Port: 8080, 8443, 2506    │   │
 │  └──────────────────────────────┘   │
 │  ┌──────────────────────────────┐   │
@@ -36,14 +36,17 @@
 │  └──────────────────────────────┘   │
 │  ┌──────────────────────────────┐   │
 │  │ 📦 aeos-lookup container     │   │
-│  │    (Java)                    │   │
+│  │    (Jini Service)            │   │
 │  │    Port: 2505                │   │
 │  └──────────────────────────────┘   │
 └─────────────────────────────────────┘
          ✅ Fully containerized!
+    Uses official AEOS 2023.1.8 binaries
 ```
 
 ## Installation Methods
+
+**⚠️ Note**: First build takes 10-20 minutes to download and install the 1.4GB AEOS installer. Subsequent builds are much faster (~1-2 minutes).
 
 ### Method 1: Docker Compose (Easiest)
 ```bash
@@ -51,6 +54,7 @@ git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
 cp .env.example .env
 # Edit .env to set passwords
+docker-compose build  # Downloads AEOS installer (takes time!)
 docker-compose up -d
 ```
 
@@ -60,7 +64,7 @@ git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
 cp .env.example .env
 # Edit .env to set passwords
-./deploy-podman.sh
+./deploy-podman.sh  # Builds and deploys (takes time!)
 ```
 
 ### Method 3: Podman Compose
@@ -69,6 +73,7 @@ git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
 cp .env.example .env
 # Edit .env to set passwords
+podman-compose build  # Downloads AEOS installer (takes time!)
 podman-compose up -d
 ```
 
@@ -78,6 +83,7 @@ git clone https://github.com/tiagorebelo97/AEOS.git
 cd AEOS
 make init-env  # Creates .env from template
 # Edit .env to set passwords
+make build     # Builds containers (takes time!)
 make up        # For Docker
 # OR
 make up-podman # For Podman
@@ -125,9 +131,11 @@ make test          # Run tests
 AEOS/
 ├── 📄 README.md                    # Main documentation
 ├── 📄 README_CONTAINER.md          # Detailed container guide
+├── 📄 BUILD.md                     # Build process documentation
+├── 📄 QUICKSTART.md                # This quick start guide
 ├── 📄 ANALYSIS_SUMMARY.md          # Technical analysis
-├── 🐳 Dockerfile                   # App server image
-├── 🐳 Dockerfile.lookup            # Lookup server image
+├── 🐳 Dockerfile                   # App server image (uses official installer)
+├── 🐳 Dockerfile.lookup            # Lookup server image (uses official installer)
 ├── 📋 docker-compose.yml           # Docker orchestration
 ├── 📋 podman-compose.yml           # Podman orchestration
 ├── 🔧 Makefile                     # Management commands
@@ -139,6 +147,10 @@ AEOS/
 ├── 📁 init-scripts/                # Database init
 └── 📁 lookup-server/               # Lookup server config
 ```
+
+**GitHub Release**: https://github.com/tiagorebelo97/AEOS/releases/tag/version0
+- Contains `aeosinstall_2023.1.8.sh` (1.4GB) - Official AEOS installer
+- Automatically downloaded during container build
 
 ## Troubleshooting
 
@@ -178,11 +190,13 @@ podman exec aeos-database pg_isready -U aeos
 1. ✅ Install Docker or Podman
 2. ✅ Clone the repository
 3. ✅ Create .env file with secure passwords
-4. ✅ Run deployment command
-5. ✅ Access web interface
-6. 📖 Read README_CONTAINER.md for detailed info
-7. 📖 Read ANALYSIS_SUMMARY.md for technical details
-8. 📄 Review aeos_technical_help_en_compressed.pdf for AEOS features
+4. ✅ Run build command (be patient, downloads 1.4GB installer)
+5. ✅ Run deployment command
+6. ✅ Access web interface
+7. 📖 Read README_CONTAINER.md for detailed info
+8. 📖 Read BUILD.md for build process details
+9. 📖 Read ANALYSIS_SUMMARY.md for technical details
+10. 📄 Review aeos_technical_help_en_compressed.pdf for AEOS features
 
 ## Support
 
