@@ -1,0 +1,43 @@
+# AEOS Lookup Server Dockerfile
+# Lookup server handles network communication between AEOS components
+
+FROM openjdk:11-jre-slim
+
+LABEL maintainer="AEOS Container"
+LABEL description="AEOS Lookup Server for network communication"
+
+# Install required dependencies
+RUN apt-get update && apt-get install -y \
+    netcat-openbsd \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables
+ENV AEOS_LOOKUP_HOME=/opt/aeos-lookup \
+    AEOS_LOOKUP_PORT=2505 \
+    JAVA_OPTS="-Xms512m -Xmx1024m"
+
+# Create directories
+RUN mkdir -p ${AEOS_LOOKUP_HOME}/bin \
+    && mkdir -p ${AEOS_LOOKUP_HOME}/config \
+    && mkdir -p ${AEOS_LOOKUP_HOME}/logs
+
+# Copy lookup server files
+COPY lookup-server/lookup.properties.template ${AEOS_LOOKUP_HOME}/config/
+COPY scripts/lookup-entrypoint.sh /usr/local/bin/
+COPY scripts/lookup-healthcheck.sh /usr/local/bin/
+
+# Make scripts executable
+RUN chmod +x /usr/local/bin/lookup-entrypoint.sh \
+    && chmod +x /usr/local/bin/lookup-healthcheck.sh
+
+# Expose lookup server port
+EXPOSE 2505
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD /usr/local/bin/lookup-healthcheck.sh
+
+WORKDIR ${AEOS_LOOKUP_HOME}
+
+ENTRYPOINT ["/usr/local/bin/lookup-entrypoint.sh"]

@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Server
+  aeos-database:
+    image: postgres:14-alpine
+    container_name: aeos-database
+    environment:
+      POSTGRES_DB: aeos
+      POSTGRES_USER: aeos
+      POSTGRES_PASSWORD: ${AEOS_DB_PASSWORD:-aeos_password_change_me}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - aeos-db-data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - aeos-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aeos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # AEOS Lookup Server
+  aeos-lookup:
+    build:
+      context: .
+      dockerfile: Dockerfile.lookup
+    container_name: aeos-lookup
+    environment:
+      AEOS_LOOKUP_PORT: 2505
+      AEOS_DB_HOST: aeos-database
+      AEOS_DB_PORT: 5432
+      AEOS_DB_NAME: aeos
+      AEOS_DB_USER: aeos
+      AEOS_DB_PASSWORD: ${AEOS_DB_PASSWORD:-aeos_password_change_me}
+    ports:
+      - "2505:2505"
+    networks:
+      - aeos-network
+    depends_on:
+      aeos-database:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2505"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # AEOS Application Server
+  aeos-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aeos-server
+    environment:
+      AEOS_DB_HOST: aeos-database
+      AEOS_DB_PORT: 5432
+      AEOS_DB_NAME: aeos
+      AEOS_DB_USER: aeos
+      AEOS_DB_PASSWORD: ${AEOS_DB_PASSWORD:-aeos_password_change_me}
+      AEOS_LOOKUP_HOST: aeos-lookup
+      AEOS_LOOKUP_PORT: 2505
+      AEOS_SERVER_PORT: 2506
+      AEOS_WEB_PORT: 8080
+      AEOS_HTTPS_PORT: 8443
+      TZ: ${TZ:-UTC}
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      - "2506:2506"
+    volumes:
+      - aeos-data:/var/lib/aeos
+      - aeos-logs:/opt/aeos/logs
+      - ./config:/opt/aeos/config:ro
+    networks:
+      - aeos-network
+    depends_on:
+      aeos-database:
+        condition: service_healthy
+      aeos-lookup:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  aeos-db-data:
+    driver: local
+  aeos-data:
+    driver: local
+  aeos-logs:
+    driver: local
+
+networks:
+  aeos-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

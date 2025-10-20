@@ -1,0 +1,39 @@
+# Environment files
+.env
+
+# Docker/Podman build artifacts
+*.tar
+*.tar.gz
+
+# Logs
+logs/
+*.log
+
+# Data directories (should use volumes instead)
+data/
+pgdata/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# License files (if proprietary)
+*.license
+license/
+
+# Backup files
+*.bak
+*.backup
+*-backup.sql

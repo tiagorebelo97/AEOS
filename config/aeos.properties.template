@@ -1,0 +1,38 @@
+# AEOS Application Server Configuration Template
+# This file is processed by envsubst to generate the actual aeos.properties
+
+# Database Configuration
+db.host=${AEOS_DB_HOST}
+db.port=${AEOS_DB_PORT}
+db.name=${AEOS_DB_NAME}
+db.user=${AEOS_DB_USER}
+db.password=${AEOS_DB_PASSWORD}
+db.driver=org.postgresql.Driver
+db.url=jdbc:postgresql://${AEOS_DB_HOST}:${AEOS_DB_PORT}/${AEOS_DB_NAME}
+
+# Lookup Server Configuration
+lookup.server.host=${AEOS_LOOKUP_HOST}
+lookup.server.port=${AEOS_LOOKUP_PORT}
+
+# Application Server Configuration
+app.server.port=${AEOS_SERVER_PORT}
+app.web.port=${AEOS_WEB_PORT}
+app.https.port=${AEOS_HTTPS_PORT}
+
+# AEOS System Properties
+aeos.home=${AEOS_HOME}
+aeos.data=${AEOS_DATA}
+aeos.logs=${AEOS_DATA}/logs
+
+# Timezone
+user.timezone=${TZ}
+
+# License Configuration (placeholder - requires actual license file)
+# license.file=${AEOS_DATA}/license/aeos.license
+
+# Session Configuration
+session.timeout=30
+
+# Log Configuration
+log.level=INFO
+log.path=${AEOS_DATA}/logs
