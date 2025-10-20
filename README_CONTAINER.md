@@ -54,6 +54,24 @@ The containerized AEOS system consists of three main components:
 
 ## Quick Start
 
+### Simplest Method (Universal Script)
+
+Just clone and run:
+
+```bash
+git clone https://github.com/tiagorebelo97/AEOS.git
+cd AEOS
+./start.sh
+```
+
+The `start.sh` script automatically:
+- Detects whether you have Docker or Podman
+- Creates a secure `.env` file with random password
+- Builds all container images
+- Starts all services
+
+**No manual configuration needed!** Access AEOS at http://localhost:8080/aeos
+
 ### Using Docker Compose
 
 1. **Clone the repository:**
@@ -91,31 +109,23 @@ The containerized AEOS system consists of three main components:
    - HTTPS: https://localhost:8443/aeos
    - Default credentials: admin/admin (change on first login)
 
-### Using Podman
+### Using Podman (Simplest Method)
 
-1. **Clone the repository:**
+1. **Clone and start with one command:**
    ```bash
    git clone https://github.com/tiagorebelo97/AEOS.git
    cd AEOS
-   ```
-
-2. **Create environment file:**
-   ```bash
-   cp .env.example .env
-   nano .env
-   ```
-
-3. **Build and start with Podman:**
-   ```bash
-   # Using podman-compose
-   podman-compose build
-   podman-compose up -d
-   
-   # OR using the deployment script
    ./deploy-podman.sh
    ```
+   
+   That's it! The script automatically:
+   - Creates a secure `.env` file with random password
+   - Builds all container images
+   - Starts all services
+   
+   **No manual configuration needed!**
 
-4. **Check pod status:**
+2. **Check pod status:**
    ```bash
    podman ps -a
    podman logs aeos-server
