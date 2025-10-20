@@ -45,6 +45,11 @@ services:
     depends_on:
       - aeos-database
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2505"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   aeos-server:
     build:
@@ -77,6 +82,12 @@ services:
       - aeos-database
       - aeos-lookup
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 volumes:
   aeos-db-data:
@@ -89,3 +100,6 @@ volumes:
 networks:
   aeos-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -53,3 +53,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 WORKDIR ${AEOS_HOME}
 
 ENTRYPOINT ["/usr/local/bin/lookup-entrypoint.sh"]
+CMD ["start"]
