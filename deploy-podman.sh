@@ -1,9 +1,29 @@
 #!/bin/bash
 # Podman deployment script for AEOS
 # This script fully automates AEOS deployment using Podman
-# Usage: ./deploy-podman.sh
+# Usage: ./deploy-podman.sh [--verbose]
+#   --verbose: Enable verbose output showing all commands
 
 set -e
+
+# Parse command line arguments
+VERBOSE=false
+for arg in "$@"; do
+    case $arg in
+        --verbose|-v)
+            VERBOSE=true
+            echo "Verbose mode enabled"
+            set -x  # Enable command tracing
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: ./deploy-podman.sh [--verbose]"
+            echo "  --verbose, -v: Enable verbose output showing all commands"
+            echo "  --help, -h: Show this help message"
+            exit 0
+            ;;
+    esac
+done
 
 echo "=========================================="
 echo "AEOS Podman Deployment Script"

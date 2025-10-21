@@ -1,7 +1,7 @@
 #!/bin/bash
 # Simple launcher for AEOS with Podman
 # This is the simplest way to get AEOS running
-# Usage: ./start.sh
+# Usage: ./start.sh [--verbose]
 
 set -e
 
@@ -11,7 +11,7 @@ echo ""
 # Detect if we should use Docker or Podman
 if command -v podman &> /dev/null; then
     echo "✓ Using Podman"
-    ./deploy-podman.sh
+    ./deploy-podman.sh "$@"
 elif command -v docker &> /dev/null; then
     echo "✓ Using Docker"
     
