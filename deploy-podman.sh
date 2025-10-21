@@ -87,7 +87,7 @@ deploy_with_compose() {
     # Remove any AEOS-related pods
     for pod in $(podman pod ls --format '{{.Name}}' | grep -i aeos); do
         echo "  Removing pod ${pod}..."
-        podman pod rm -f ${pod} 2>/dev/null || true
+        podman pod rm -f "${pod}" 2>/dev/null || true
     done
     
     # Also clean up using podman-compose to ensure consistent state
