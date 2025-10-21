@@ -1,9 +1,29 @@
 #!/bin/bash
 # Podman deployment script for AEOS
 # This script fully automates AEOS deployment using Podman
-# Usage: ./deploy-podman.sh
+# Usage: ./deploy-podman.sh [--verbose]
+#   --verbose: Enable verbose output showing all commands
 
 set -e
+
+# Parse command line arguments
+VERBOSE=false
+for arg in "$@"; do
+    case $arg in
+        --verbose|-v)
+            VERBOSE=true
+            echo "Verbose mode enabled"
+            set -x  # Enable command tracing
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: ./deploy-podman.sh [--verbose]"
+            echo "  --verbose, -v: Enable verbose output showing all commands"
+            echo "  --help, -h: Show this help message"
+            exit 0
+            ;;
+    esac
+done
 
 echo "=========================================="
 echo "AEOS Podman Deployment Script"
@@ -77,22 +97,22 @@ deploy_with_compose() {
     
     # Stop and remove containers if they exist
     for container in aeos-server aeos-lookup aeos-database; do
-        if podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
+        if timeout 5 podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
             echo "  Stopping and removing ${container}..."
-            podman stop ${container} 2>/dev/null || true
-            podman rm -f ${container} 2>/dev/null || true
+            timeout 30 podman stop ${container} 2>/dev/null || true
+            timeout 10 podman rm -f ${container} 2>/dev/null || true
         fi
     done
     
     # Remove any AEOS-related pods
-    for pod in $(podman pod ls --format '{{.Name}}' | grep -i aeos); do
+    for pod in $(timeout 10 podman pod ls --format '{{.Name}}' | grep -i aeos); do
         echo "  Removing pod ${pod}..."
-        podman pod rm -f "${pod}" 2>/dev/null || true
+        timeout 30 podman pod rm -f "${pod}" 2>/dev/null || true
     done
     
     # Also clean up using podman-compose to ensure consistent state
     echo "  Running podman-compose down to clean up..."
-    podman-compose down 2>/dev/null || true
+    timeout 60 podman-compose down 2>/dev/null || true
     
     echo ""
     echo "Building containers with podman-compose..."
@@ -123,18 +143,28 @@ deploy_with_compose() {
     
     # Check if containers exist and start them if needed
     for container in aeos-database aeos-lookup aeos-server; do
+        echo "  Checking ${container}..."
         if podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
-            state=$(podman inspect --format='{{.State.Status}}' ${container} 2>/dev/null || echo "not found")
+            # Use timeout to prevent hanging on inspect command
+            state=$(timeout 10 podman inspect --format='{{.State.Status}}' ${container} 2>/dev/null || echo "unknown")
+            if [ "$state" = "unknown" ]; then
+                echo "  ⚠️  Warning: Could not inspect ${container} (command timed out or failed)"
+                echo "  Container may be in a bad state. Attempting to remove and let compose recreate..."
+                podman rm -f ${container} 2>/dev/null || true
+                continue
+            fi
+            
             if [ "$state" != "running" ]; then
                 echo "  Starting ${container} (current state: ${state})..."
                 
-                # Try to start the container with retries
+                # Try to start the container with retries and timeout
                 max_retries=3
                 retry_count=0
                 started=false
                 
                 while [ $retry_count -lt $max_retries ]; do
-                    if podman start ${container} 2>&1; then
+                    # Use timeout to prevent hanging on start command
+                    if timeout 30 podman start ${container} 2>&1; then
                         started=true
                         echo "  ✓ Successfully started ${container}"
                         break
@@ -150,7 +180,7 @@ deploy_with_compose() {
                 if [ "$started" = false ]; then
                     echo "  ✗ Failed to start ${container} after $max_retries attempts"
                     echo "  Checking container logs for errors..."
-                    podman logs --tail 20 ${container} 2>&1 | sed 's/^/     /'
+                    timeout 10 podman logs --tail 20 ${container} 2>&1 | sed 's/^/     /' || echo "     (Could not retrieve logs)"
                 fi
             else
                 echo "  ✓ ${container} is already running"
@@ -162,29 +192,44 @@ deploy_with_compose() {
     
     echo ""
     echo "Waiting for database to be healthy (this may take 30-60 seconds)..."
+    db_healthy=false
     for i in {1..30}; do
-        if ! podman ps --format '{{.Names}}' | grep -q "^aeos-database$"; then
+        if ! timeout 5 podman ps --format '{{.Names}}' | grep -q "^aeos-database$"; then
             echo "  Database container not found, waiting..."
             sleep 2
             continue
         fi
         
-        health=$(podman inspect --format='{{.State.Health.Status}}' aeos-database 2>/dev/null || echo "none")
-        state=$(podman inspect --format='{{.State.Status}}' aeos-database 2>/dev/null || echo "not found")
+        health=$(timeout 5 podman inspect --format='{{.State.Health.Status}}' aeos-database 2>/dev/null || echo "none")
+        state=$(timeout 5 podman inspect --format='{{.State.Status}}' aeos-database 2>/dev/null || echo "not found")
         
         if [ "$state" != "running" ]; then
             echo "  Database is not running (state: $state), attempting to start..."
-            podman start aeos-database 2>/dev/null || true
+            timeout 30 podman start aeos-database 2>/dev/null || true
         fi
         
         if [ "$health" = "healthy" ]; then
             echo "  ✓ Database is healthy"
+            db_healthy=true
             break
         fi
         
-        echo "  Database health: $health (attempt $i/30)"
+        echo "  Database health: $health, state: $state (attempt $i/30)"
         sleep 2
     done
+    
+    # Check if database became healthy
+    if [ "$db_healthy" = false ]; then
+        echo ""
+        echo "  ⚠️  Warning: Database did not become healthy within timeout period"
+        echo "  Current state: $state, health: $health"
+        echo "  Checking database logs for issues..."
+        echo ""
+        timeout 10 podman logs --tail 30 aeos-database 2>&1 | sed 's/^/     /' || echo "     (Could not retrieve logs)"
+        echo ""
+        echo "  The database might still be initializing. Continuing anyway..."
+        echo "  You can check status with: podman logs -f aeos-database"
+    fi
     
     # Wait a moment for containers to initialize
     echo ""
@@ -193,22 +238,25 @@ deploy_with_compose() {
     
     echo ""
     echo "Checking container status..."
-    podman-compose ps
+    timeout 10 podman-compose ps || echo "⚠️  podman-compose ps command timed out or failed"
     
     # Verify containers are running
     echo ""
     echo "Verifying container states..."
     all_running=true
     for container in aeos-database aeos-lookup aeos-server; do
-        state=$(podman inspect --format='{{.State.Status}}' ${container} 2>/dev/null || echo "not found")
-        health=$(podman inspect --format='{{.State.Health.Status}}' ${container} 2>/dev/null || echo "none")
+        state=$(timeout 10 podman inspect --format='{{.State.Status}}' ${container} 2>/dev/null || echo "unknown")
+        health=$(timeout 10 podman inspect --format='{{.State.Health.Status}}' ${container} 2>/dev/null || echo "none")
         
         if [ "$state" = "running" ]; then
             echo "  ✓ ${container} is running (health: $health)"
+        elif [ "$state" = "unknown" ]; then
+            echo "  ⚠️  ${container} status could not be determined (command timed out)"
+            all_running=false
         else
             echo "  ✗ ${container} is ${state} (health: $health)"
             echo "     Attempting to view logs..."
-            podman logs --tail 50 ${container} 2>&1 | sed 's/^/     /'
+            timeout 10 podman logs --tail 50 ${container} 2>&1 | sed 's/^/     /' || echo "     (Could not retrieve logs)"
             all_running=false
         fi
     done
@@ -230,22 +278,22 @@ deploy_with_podman() {
     echo ""
     echo "Cleaning up any existing AEOS containers..."
     for container in aeos-server aeos-lookup aeos-database; do
-        if podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
+        if timeout 5 podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
             echo "  Stopping and removing ${container}..."
-            podman stop ${container} 2>/dev/null || true
-            podman rm -f ${container} 2>/dev/null || true
+            timeout 30 podman stop ${container} 2>/dev/null || true
+            timeout 10 podman rm -f ${container} 2>/dev/null || true
         fi
     done
     
     echo ""
     echo "Creating podman network..."
-    podman network create aeos-network || echo "Network already exists"
+    timeout 10 podman network create aeos-network || echo "Network already exists"
     
     echo ""
     echo "Creating volumes..."
-    podman volume create aeos-db-data || echo "Volume aeos-db-data already exists"
-    podman volume create aeos-data || echo "Volume aeos-data already exists"
-    podman volume create aeos-logs || echo "Volume aeos-logs already exists"
+    timeout 10 podman volume create aeos-db-data || echo "Volume aeos-db-data already exists"
+    timeout 10 podman volume create aeos-data || echo "Volume aeos-data already exists"
+    timeout 10 podman volume create aeos-logs || echo "Volume aeos-logs already exists"
     
     # Load environment variables
     source .env 2>/dev/null || true
@@ -320,7 +368,7 @@ deploy_with_podman() {
     
     echo ""
     echo "Checking container status..."
-    podman ps -a --filter "name=aeos-"
+    timeout 10 podman ps -a --filter "name=aeos-" || echo "⚠️  Could not retrieve container status"
 }
 
 # Deploy based on available tools
@@ -336,7 +384,7 @@ echo "AEOS Deployment Complete!"
 echo "=========================================="
 echo ""
 echo "Container Status:"
-podman ps -a --filter "name=aeos-" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+timeout 10 podman ps -a --filter "name=aeos-" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || echo "⚠️  Could not retrieve container status"
 echo ""
 echo "=========================================="
 echo "Access AEOS at:"
