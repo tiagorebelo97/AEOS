@@ -127,11 +127,31 @@ deploy_with_compose() {
             state=$(podman inspect --format='{{.State.Status}}' ${container} 2>/dev/null || echo "not found")
             if [ "$state" != "running" ]; then
                 echo "  Starting ${container} (current state: ${state})..."
-                podman start ${container} 2>/dev/null || {
-                    echo "  Warning: Failed to start ${container}, it may be in a bad state"
-                    echo "  Attempting to recreate..."
-                    # If container is in a bad state due to pod issues, we might need to remove and let the script recreate
-                }
+                
+                # Try to start the container with retries
+                max_retries=3
+                retry_count=0
+                started=false
+                
+                while [ $retry_count -lt $max_retries ]; do
+                    if podman start ${container} 2>&1; then
+                        started=true
+                        echo "  ✓ Successfully started ${container}"
+                        break
+                    else
+                        retry_count=$((retry_count + 1))
+                        if [ $retry_count -lt $max_retries ]; then
+                            echo "  Retry $retry_count/$max_retries for ${container}..."
+                            sleep 2
+                        fi
+                    fi
+                done
+                
+                if [ "$started" = false ]; then
+                    echo "  ✗ Failed to start ${container} after $max_retries attempts"
+                    echo "  Checking container logs for errors..."
+                    podman logs --tail 20 ${container} 2>&1 | sed 's/^/     /'
+                fi
             else
                 echo "  ✓ ${container} is already running"
             fi
@@ -178,6 +198,7 @@ deploy_with_compose() {
     # Verify containers are running
     echo ""
     echo "Verifying container states..."
+    all_running=true
     for container in aeos-database aeos-lookup aeos-server; do
         state=$(podman inspect --format='{{.State.Status}}' ${container} 2>/dev/null || echo "not found")
         health=$(podman inspect --format='{{.State.Health.Status}}' ${container} 2>/dev/null || echo "none")
@@ -188,8 +209,19 @@ deploy_with_compose() {
             echo "  ✗ ${container} is ${state} (health: $health)"
             echo "     Attempting to view logs..."
             podman logs --tail 50 ${container} 2>&1 | sed 's/^/     /'
+            all_running=false
         fi
     done
+    
+    if [ "$all_running" = false ]; then
+        echo ""
+        echo "⚠️  Warning: Not all containers are running!"
+        echo "   Please check the logs above for errors."
+        echo "   You can view full logs with:"
+        echo "     podman logs aeos-database"
+        echo "     podman logs aeos-lookup"
+        echo "     podman logs aeos-server"
+    fi
 }
 
 # Function to deploy with native podman
