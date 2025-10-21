@@ -77,22 +77,22 @@ deploy_with_compose() {
     
     # Stop and remove containers if they exist
     for container in aeos-server aeos-lookup aeos-database; do
-        if podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
+        if timeout 5 podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
             echo "  Stopping and removing ${container}..."
-            podman stop ${container} 2>/dev/null || true
-            podman rm -f ${container} 2>/dev/null || true
+            timeout 30 podman stop ${container} 2>/dev/null || true
+            timeout 10 podman rm -f ${container} 2>/dev/null || true
         fi
     done
     
     # Remove any AEOS-related pods
-    for pod in $(podman pod ls --format '{{.Name}}' | grep -i aeos); do
+    for pod in $(timeout 10 podman pod ls --format '{{.Name}}' | grep -i aeos); do
         echo "  Removing pod ${pod}..."
-        podman pod rm -f "${pod}" 2>/dev/null || true
+        timeout 30 podman pod rm -f "${pod}" 2>/dev/null || true
     done
     
     # Also clean up using podman-compose to ensure consistent state
     echo "  Running podman-compose down to clean up..."
-    podman-compose down 2>/dev/null || true
+    timeout 60 podman-compose down 2>/dev/null || true
     
     echo ""
     echo "Building containers with podman-compose..."
@@ -258,22 +258,22 @@ deploy_with_podman() {
     echo ""
     echo "Cleaning up any existing AEOS containers..."
     for container in aeos-server aeos-lookup aeos-database; do
-        if podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
+        if timeout 5 podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
             echo "  Stopping and removing ${container}..."
-            podman stop ${container} 2>/dev/null || true
-            podman rm -f ${container} 2>/dev/null || true
+            timeout 30 podman stop ${container} 2>/dev/null || true
+            timeout 10 podman rm -f ${container} 2>/dev/null || true
         fi
     done
     
     echo ""
     echo "Creating podman network..."
-    podman network create aeos-network || echo "Network already exists"
+    timeout 10 podman network create aeos-network || echo "Network already exists"
     
     echo ""
     echo "Creating volumes..."
-    podman volume create aeos-db-data || echo "Volume aeos-db-data already exists"
-    podman volume create aeos-data || echo "Volume aeos-data already exists"
-    podman volume create aeos-logs || echo "Volume aeos-logs already exists"
+    timeout 10 podman volume create aeos-db-data || echo "Volume aeos-db-data already exists"
+    timeout 10 podman volume create aeos-data || echo "Volume aeos-data already exists"
+    timeout 10 podman volume create aeos-logs || echo "Volume aeos-logs already exists"
     
     # Load environment variables
     source .env 2>/dev/null || true
@@ -348,7 +348,7 @@ deploy_with_podman() {
     
     echo ""
     echo "Checking container status..."
-    podman ps -a --filter "name=aeos-"
+    timeout 10 podman ps -a --filter "name=aeos-" || echo "⚠️  Could not retrieve container status"
 }
 
 # Deploy based on available tools
