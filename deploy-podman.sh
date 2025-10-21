@@ -144,13 +144,13 @@ deploy_with_compose() {
     # Check if containers exist and start them if needed
     for container in aeos-database aeos-lookup aeos-server; do
         echo "  Checking ${container}..."
-        if podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
+        if timeout 5 podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
             # Use timeout to prevent hanging on inspect command
             state=$(timeout 10 podman inspect --format='{{.State.Status}}' ${container} 2>/dev/null || echo "unknown")
             if [ "$state" = "unknown" ]; then
                 echo "  ⚠️  Warning: Could not inspect ${container} (command timed out or failed)"
                 echo "  Container may be in a bad state. Attempting to remove and let compose recreate..."
-                podman rm -f ${container} 2>/dev/null || true
+                timeout 10 podman rm -f ${container} 2>/dev/null || true
                 continue
             fi
             
