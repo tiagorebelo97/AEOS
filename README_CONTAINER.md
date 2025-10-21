@@ -418,6 +418,60 @@ podman ps -a --filter "name=aeos-"
 
 If containers fail to start, check the logs using `./view-logs.sh [container-name]` to see error messages.
 
+### Podman Pod cgroup errors
+
+If you encounter an error like:
+```
+Error: pod <id> cgroup is not set: internal libpod error
+Error: "aeos-database" is not a valid container, cannot be used as a dependency
+```
+
+**Symptoms:**
+- Pod creation fails with cgroup errors
+- Containers can't be started due to missing dependencies
+- Error messages about containers not being valid
+
+**Cause:**
+- Some versions of podman-compose create pods by default
+- Pod creation can fail due to cgroup v2 issues or permission problems
+- When the pod fails, containers can't be properly created or started
+
+**Solution (Fixed in this version):**
+
+The `deploy-podman.sh` script now:
+1. Cleans up any existing pods/containers before deployment
+2. Attempts to use `--no-pods` flag if available (avoids pod creation)
+3. Manually verifies and starts containers if needed
+
+If you still encounter pod issues, you can:
+
+**Option 1: Clean up and redeploy**
+```bash
+# Clean up everything
+podman-compose down
+podman pod rm -f $(podman pod ls -q) 2>/dev/null || true
+podman rm -f aeos-server aeos-lookup aeos-database 2>/dev/null || true
+
+# Redeploy
+./deploy-podman.sh
+```
+
+**Option 2: Use native podman (without compose)**
+Edit `deploy-podman.sh` and comment out or rename `podman-compose` temporarily:
+```bash
+# This will force the script to use native podman commands instead
+which podman-compose
+# If found, temporarily rename it: sudo mv /usr/local/bin/podman-compose /usr/local/bin/podman-compose.bak
+```
+
+Then run:
+```bash
+./deploy-podman.sh
+```
+
+This uses native podman commands which don't create pods and avoid the cgroup issue entirely.
+
+
 ```yaml
 healthcheck:
   test: ["CMD", "pg_isready", "-U", "aeos"]  # ✓ Correct format
