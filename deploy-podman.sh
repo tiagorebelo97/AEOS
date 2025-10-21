@@ -71,22 +71,84 @@ fi
 
 # Function to deploy with podman-compose
 deploy_with_compose() {
+    # Clean up any existing containers and pods to avoid conflicts
+    echo ""
+    echo "Cleaning up any existing AEOS containers and pods..."
+    
+    # Stop and remove containers if they exist
+    for container in aeos-server aeos-lookup aeos-database; do
+        if podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
+            echo "  Stopping and removing ${container}..."
+            podman stop ${container} 2>/dev/null || true
+            podman rm -f ${container} 2>/dev/null || true
+        fi
+    done
+    
+    # Remove any AEOS-related pods
+    for pod in $(podman pod ls --format '{{.Name}}' | grep -i aeos); do
+        echo "  Removing pod ${pod}..."
+        podman pod rm -f ${pod} 2>/dev/null || true
+    done
+    
+    # Also clean up using podman-compose to ensure consistent state
+    echo "  Running podman-compose down to clean up..."
+    podman-compose down 2>/dev/null || true
+    
     echo ""
     echo "Building containers with podman-compose..."
-    podman-compose build
+    # Set environment variable to avoid pod creation issues with cgroup v2
+    # This tells podman-compose to not use pods which can have cgroup issues
+    export PODMAN_USERNS=keep-id
+    
+    # Try using --no-pods flag if supported, otherwise use regular build
+    if podman-compose --help 2>&1 | grep -q -- '--no-pods'; then
+        echo "  Using --no-pods flag to avoid pod creation issues..."
+        podman-compose --no-pods build
+    else
+        podman-compose build
+    fi
     
     echo ""
     echo "Starting containers with podman-compose..."
-    podman-compose up -d
+    if podman-compose --help 2>&1 | grep -q -- '--no-pods'; then
+        podman-compose --no-pods up -d
+    else
+        podman-compose up -d
+    fi
     
-    # Explicitly start containers (workaround for podman-compose bug where containers may be created but not started)
+    # Explicitly start containers (workaround for podman-compose issues)
+    # This ensures containers are started even if pod creation failed
     echo ""
     echo "Ensuring containers are started..."
-    echo "Starting database..."
-    podman start aeos-database 2>/dev/null || true
     
+    # Check if containers exist and start them if needed
+    for container in aeos-database aeos-lookup aeos-server; do
+        if podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
+            state=$(podman inspect --format='{{.State.Status}}' ${container} 2>/dev/null || echo "not found")
+            if [ "$state" != "running" ]; then
+                echo "  Starting ${container} (current state: ${state})..."
+                podman start ${container} 2>/dev/null || {
+                    echo "  Warning: Failed to start ${container}, it may be in a bad state"
+                    echo "  Attempting to recreate..."
+                    # If container is in a bad state due to pod issues, we might need to remove and let the script recreate
+                }
+            else
+                echo "  ✓ ${container} is already running"
+            fi
+        else
+            echo "  Warning: ${container} does not exist, podman-compose may have failed"
+        fi
+    done
+    
+    echo ""
     echo "Waiting for database to be healthy (this may take 30-60 seconds)..."
     for i in {1..30}; do
+        if ! podman ps --format '{{.Names}}' | grep -q "^aeos-database$"; then
+            echo "  Database container not found, waiting..."
+            sleep 2
+            continue
+        fi
+        
         health=$(podman inspect --format='{{.State.Health.Status}}' aeos-database 2>/dev/null || echo "none")
         state=$(podman inspect --format='{{.State.Status}}' aeos-database 2>/dev/null || echo "not found")
         
@@ -103,15 +165,6 @@ deploy_with_compose() {
         echo "  Database health: $health (attempt $i/30)"
         sleep 2
     done
-    
-    echo ""
-    echo "Starting lookup server..."
-    podman start aeos-lookup 2>/dev/null || true
-    sleep 3
-    
-    echo "Starting application server..."
-    podman start aeos-server 2>/dev/null || true
-    sleep 3
     
     # Wait a moment for containers to initialize
     echo ""
@@ -141,6 +194,17 @@ deploy_with_compose() {
 
 # Function to deploy with native podman
 deploy_with_podman() {
+    # Clean up any existing containers to avoid conflicts
+    echo ""
+    echo "Cleaning up any existing AEOS containers..."
+    for container in aeos-server aeos-lookup aeos-database; do
+        if podman ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
+            echo "  Stopping and removing ${container}..."
+            podman stop ${container} 2>/dev/null || true
+            podman rm -f ${container} 2>/dev/null || true
+        fi
+    done
+    
     echo ""
     echo "Creating podman network..."
     podman network create aeos-network || echo "Network already exists"
