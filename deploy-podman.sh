@@ -218,7 +218,7 @@ deploy_with_compose() {
     
     echo ""
     echo "Checking container status..."
-    podman-compose ps
+    timeout 10 podman-compose ps || echo "⚠️  podman-compose ps command timed out or failed"
     
     # Verify containers are running
     echo ""
@@ -364,7 +364,7 @@ echo "AEOS Deployment Complete!"
 echo "=========================================="
 echo ""
 echo "Container Status:"
-podman ps -a --filter "name=aeos-" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+timeout 10 podman ps -a --filter "name=aeos-" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || echo "⚠️  Could not retrieve container status"
 echo ""
 echo "=========================================="
 echo "Access AEOS at:"
