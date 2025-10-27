@@ -54,6 +54,8 @@ EOF
     echo ""
     echo "To stop:"
     echo "  docker-compose down"
+    echo ""
+    echo "For troubleshooting and next steps, see POST_BUILD.md"
     echo "=========================================="
 else
     echo "❌ Error: Neither Podman nor Docker is installed"

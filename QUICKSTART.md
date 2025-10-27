@@ -96,6 +96,14 @@ make up        # For Docker
 make up-podman # For Podman
 ```
 
+## After Building
+
+**🎉 Build Complete?** See **[POST_BUILD.md](POST_BUILD.md)** for:
+- Understanding build output and warnings
+- Clear next steps to start containers
+- Troubleshooting common issues
+- Accessing the web interface
+
 ## Accessing AEOS
 
 After deployment:
@@ -139,6 +147,7 @@ AEOS/
 ├── 📄 README.md                    # Main documentation
 ├── 📄 README_CONTAINER.md          # Detailed container guide
 ├── 📄 BUILD.md                     # Build process documentation
+├── 📄 POST_BUILD.md                # After build: next steps
 ├── 📄 QUICKSTART.md                # This quick start guide
 ├── 📄 ANALYSIS_SUMMARY.md          # Technical analysis
 ├── 🚀 start.sh                     # Universal launcher (simplest!)
@@ -199,12 +208,13 @@ podman exec aeos-database pg_isready -U aeos
 2. ✅ Clone the repository
 3. ✅ Create .env file with secure passwords
 4. ✅ Run build command (be patient, downloads 1.4GB installer)
-5. ✅ Run deployment command
-6. ✅ Access web interface
-7. 📖 Read README_CONTAINER.md for detailed info
-8. 📖 Read BUILD.md for build process details
-9. 📖 Read ANALYSIS_SUMMARY.md for technical details
-10. 📄 Review aeos_technical_help_en_compressed.pdf for AEOS features
+5. ✅ **See [POST_BUILD.md](POST_BUILD.md) for next steps after building**
+6. ✅ Run deployment command
+7. ✅ Access web interface
+8. 📖 Read README_CONTAINER.md for detailed info
+9. 📖 Read BUILD.md for build process details
+10. 📖 Read ANALYSIS_SUMMARY.md for technical details
+11. 📄 Review aeos_technical_help_en_compressed.pdf for AEOS features
 
 ## Support
 

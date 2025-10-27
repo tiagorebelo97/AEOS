@@ -90,6 +90,7 @@ No manual configuration needed!
 ## Documentation
 
 - **[Quick Start Guide](QUICKSTART.md)** - Fast track to get AEOS running
+- **[Post-Build Guide](POST_BUILD.md)** - What to do after building containers
 - **[VM Deployment Guide](VM_DEPLOYMENT.md)** - Deploy on a Virtual Machine
 - **[Container Deployment Guide](README_CONTAINER.md)** - Complete containerization documentation
 - **[Build Process Guide](BUILD.md)** - Understanding the build process
@@ -105,6 +106,7 @@ AEOS/
 ├── Dockerfile.lookup                    # AEOS lookup server
 ├── docker-compose.yml                   # Docker Compose configuration
 ├── podman-compose.yml                   # Podman Compose configuration
+├── POST_BUILD.md                        # Post-build guide and next steps
 ├── config/                              # Configuration templates
 │   ├── aeos.properties.template         # Application properties
 │   ├── server.xml                       # Tomcat configuration

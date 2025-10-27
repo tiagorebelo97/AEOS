@@ -164,6 +164,8 @@ The build process downloads and installs the official AEOS software. See [BUILD.
 - Requires ~10GB disk space during build
 - Final images are ~4GB total
 
+**After building:** See [POST_BUILD.md](POST_BUILD.md) for next steps, including how to understand build output, handle warnings, and start your containers.
+
 ## Container Management
 
 ### Start containers:
